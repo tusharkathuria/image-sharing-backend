@@ -3,6 +3,7 @@ import createGroup from '@functions/create-group';
 import getGroups from "@functions/get-groups"
 import getImages from "@functions/get-images"
 import getImage from "@functions/get-image"
+import createImage from "@functions/create-image"
 
 const serverlessConfiguration: AWS = {
   service: 'serverless-udagram-app',
@@ -35,7 +36,7 @@ const serverlessConfiguration: AWS = {
       Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.GROUPS_TABLE}"
     }, {
       Effect: "Allow",
-      Action: ["dynamodb:Query"],
+      Action: ["dynamodb:Query", "dynamodb:PutItem"],
       Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.IMAGES_TABLE}"
     }, {
       Effect: "Allow",
@@ -45,7 +46,7 @@ const serverlessConfiguration: AWS = {
     lambdaHashingVersion: '20201221',
   },
   // import the function via paths
-  functions: { getGroups, createGroup, getImages, getImage },
+  functions: { getGroups, createGroup, getImages, getImage, createImage },
   resources: {
     Resources: {
       GroupsDynamoDBTable: {
