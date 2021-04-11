@@ -4,6 +4,9 @@ import getGroups from "@functions/get-groups"
 import getImages from "@functions/get-images"
 import getImage from "@functions/get-image"
 import createImage from "@functions/create-image"
+import wsConnect from "@functions/wsconnect"
+import wsDisconnect from "@functions/wsDisconnect"
+import sendUploadNotifications from "@functions/sendUploadNotifications"
 
 const serverlessConfiguration: AWS = {
   service: 'serverless-udagram-app',
@@ -28,6 +31,7 @@ const serverlessConfiguration: AWS = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       GROUPS_TABLE: "Groups-${self:provider.stage}",
       IMAGES_TABLE: "Images-${self:provider.stage}",
+      CONNECTIONS_TABLE: "Connections-${self:provider.stage}",
       IMAGE_ID_INDEX: "ImageIdIndex",
       IMAGES_S3_BUCKET: "629226848507-serverless-image-group-app-images-${self:provider.stage}",
       SIGNED_URL_EXPIRATION: "300"
@@ -48,11 +52,15 @@ const serverlessConfiguration: AWS = {
       Effect: "Allow",
       Action: ["s3:PutObject", "s3:GetObject"],
       Resource: "arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*"
+    }, {
+      Effect: "Allow",
+      Action: ["dynamodb:Scan", "dynamodb:PutItem", "dynamodb:DeleteItem"],
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.CONNECTIONS_TABLE}"
     }],
     lambdaHashingVersion: '20201221',
   },
   // import the function via paths
-  functions: { getGroups, createGroup, getImages, getImage, createImage },
+  functions: { getGroups, createGroup, getImages, getImage, createImage, wsConnect, wsDisconnect, sendUploadNotifications },
   resources: {
     Resources: {
       GroupsDynamoDBTable: {
@@ -104,10 +112,32 @@ const serverlessConfiguration: AWS = {
           TableName: "${self:provider.environment.IMAGES_TABLE}"
         }
       },
+      WebSocketConnectionsDynamoDBTable: {
+        Type: "AWS::DynamoDB::Table",
+        Properties: {
+          AttributeDefinitions: [{
+            AttributeName: "id",
+            AttributeType: "S"
+          }],
+          KeySchema: [{
+            AttributeName: "id",
+            KeyType: "HASH"
+          }],
+          BillingMode: "PAY_PER_REQUEST",
+          TableName: "${self:provider.environment.CONNECTIONS_TABLE}"
+        }
+      },
       AttachmentsBucket: {
         Type: "AWS::S3::Bucket",
+        DependsOn: ["ImagesTopic"],
         Properties: {
           BucketName: "${self:provider.environment.IMAGES_S3_BUCKET}",
+          NotificationConfiguration: {
+            TopicConfiguration: [{
+              Event: "s3:ObjectCreated:Put",
+              Topic: "${self:Resources.ImagesTopic}"
+            }]
+          },
           CorsConfiguration: {
             CorsRules: [{
               AllowedOrigins: ["*"],
@@ -116,6 +146,35 @@ const serverlessConfiguration: AWS = {
               MaxAge: 3000
             }]
           }
+        }
+      },
+      SNSTopicPolicy: {
+        Type: "AWS::SNS::TopicPolicy",
+        Properties: {
+          PolicyDocument: {
+            Version: "2012-10-17",
+            Statement: [{
+              Effect: "Allow",
+              Principal: {
+                AWS: "*"
+              },
+              Action: "sns:Publish",
+              Resource: "${self:Resources.ImagesTopic}",
+              Condition: {
+                ArnLike: {
+                  "AWS:SourceArn": "arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}"
+                }
+              }
+            }]
+          },
+          Topics: ["${self:Resources.ImagesTopic"]
+        }
+      },
+      ImagesTopic: {
+        Type: "AWS::SNS::Topic",
+        Properties: {
+          DisplayName: "Image Bucket Topic",
+          TopicName: "ImagesTopic"
         }
       },
       BucketPolicy: {
