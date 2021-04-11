@@ -5,6 +5,8 @@ frameworkVersion: '2'
 
 plugins:
   - serverless-webpack
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
 
 provider:
   name: aws
@@ -231,6 +233,15 @@ resources:
                 - DELETE
                 - HEAD
               MaxAge: 3000
+
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
 
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
