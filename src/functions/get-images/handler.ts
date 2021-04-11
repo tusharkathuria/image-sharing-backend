@@ -1,4 +1,3 @@
-import 'source-map-support/register';
 import * as AWS from 'aws-sdk'
 import { middyfy } from '@libs/lambda';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';

@@ -1,5 +1,4 @@
 import { SNSHandler, SNSEvent, S3Event } from 'aws-lambda'
-import 'source-map-support/register'
 import * as AWS  from 'aws-sdk'
 import { middyfy } from '@libs/lambda';``
 
