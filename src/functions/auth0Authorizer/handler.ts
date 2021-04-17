@@ -1,22 +1,22 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
 import 'source-map-support/register'
 import { middyfy } from '@libs/lambda';
-import * as AWS from 'aws-sdk'
-import { secretsManager } from 'middy/middlewares'
+import {secretsManager} from 'middy/middlewares'
+// import cors from '@middy/cors'
 
 import { verify } from 'jsonwebtoken'
 import { JwtToken } from '../../auth/JwtToken'
 
 const secretId = process.env.AUTH_0_SECRET_ID
 const secretField = process.env.AUTH_0_SECRET_FIELD
-const client = new AWS.SecretsManager()
 
-let cachedSecret: string
-
-export const main = middyfy(async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
+export const main = middyfy(async(event: CustomAuthorizerEvent, context): Promise<CustomAuthorizerResult> => {
   try {
-    const decodedToken = await verifyToken(event.authorizationToken)
-    console.log('User was authorized')
+    const decodedToken = verifyToken(
+      event.authorizationToken,
+      context.AUTH0_SECRET[secretField]
+    )
+    console.log('User was authorized', decodedToken)
 
     return {
       principalId: decodedToken.sub,
@@ -50,7 +50,7 @@ export const main = middyfy(async (event: CustomAuthorizerEvent): Promise<Custom
   }
 })
 
-async function verifyToken(authHeader: string): Promise<JwtToken> {
+function verifyToken(authHeader: string, secret: string): JwtToken {
   if (!authHeader)
     throw new Error('No authentication header')
 
@@ -59,20 +59,18 @@ async function verifyToken(authHeader: string): Promise<JwtToken> {
 
   const split = authHeader.split(' ')
   const token = split[1]
-  const secretObject = await getSecret()
-  const secret = secretObject[secretField]
 
   return verify(token, secret) as JwtToken
 }
 
-async function getSecret() {
-  if(cachedSecret) return JSON.parse(cachedSecret)
-
-  const data = await client.getSecretValue({
-    SecretId: secretId
-  }).promise()
-
-  cachedSecret = data.SecretString
-
-  return JSON.parse(cachedSecret)
-}
+main.use(
+  secretsManager({
+    cache: true,
+    cacheExpiryInMillis: 60000,
+    // Throw an error if can't read the secret
+    throwOnFailedCall: true,
+    secrets: {
+      AUTH0_SECRET: secretId
+    }
+  })
+)

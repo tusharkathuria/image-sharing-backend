@@ -1,6 +1,6 @@
-import middy from "@middy/core"
-import middyJsonBodyParser from "@middy/http-json-body-parser"
+import * as middy from "middy"
+import {jsonBodyParser} from "middy/middlewares"
 
 export const middyfy = (handler) => {
-  return middy(handler).use(middyJsonBodyParser())
+  return middy(handler).use(jsonBodyParser())
 }
