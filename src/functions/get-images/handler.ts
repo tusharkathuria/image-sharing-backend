@@ -15,9 +15,6 @@ const getImages: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): P
   if(!validGroupId) {
     return {
       statusCode: 404,
-      headers: {
-        'Access-Control-Allow-Origin': "*"
-      },
       body: JSON.stringify({
         error: 'Group does not exists'
       })

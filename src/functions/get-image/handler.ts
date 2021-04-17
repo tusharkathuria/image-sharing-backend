@@ -23,9 +23,6 @@ const getImage: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Pr
   if(result.Count != 0) {
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': "*"
-      },
       body: JSON.stringify(result.Items[0])
     }
   }

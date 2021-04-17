@@ -22,9 +22,6 @@ const getGroups: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): P
   // Return result
   return {
     statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
     body: JSON.stringify({
       items
     })

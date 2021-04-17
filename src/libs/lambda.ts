@@ -1,6 +1,10 @@
 import * as middy from "middy"
-import {jsonBodyParser} from "middy/middlewares"
+import {jsonBodyParser, cors} from "middy/middlewares"
 
 export const middyfy = (handler) => {
-  return middy(handler).use(jsonBodyParser())
+  return middy(handler)
+    .use(jsonBodyParser())
+    .use(cors({
+      credentials: true
+    }))
 }

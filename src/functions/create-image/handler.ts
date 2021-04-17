@@ -20,9 +20,6 @@ const createImage: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     if(!validGroupId) {
         return {
             statusCode: 404,
-            headers: {
-            'Access-Control-Allow-Origin': "*"
-            },
             body: JSON.stringify({
             error: 'Group does not exists'
             })
@@ -47,9 +44,6 @@ const createImage: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     return {
         statusCode: 201,
-        headers: {
-            'Access-Control-Allow-Origin': "*"
-        },
         body: JSON.stringify({
             newItem,
             uploadUrl: url

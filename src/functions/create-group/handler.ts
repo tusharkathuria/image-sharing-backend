@@ -23,9 +23,6 @@ const createGroup: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     return {
         statusCode: 201,
-        headers: {
-            'Access-Control-Allow-Origin': "*"
-        },
         body: JSON.stringify({newItem})
     };
 }
