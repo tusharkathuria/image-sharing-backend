@@ -10,10 +10,14 @@ const bucketName = process.env.IMAGES_S3_BUCKET
 const urlExpiration = process.env.SIGNED_URL_EXPIRATION
 
 import schema from './schema';
+import { getUserId } from 'src/auth/utils';
 
 const createImage: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
     console.log("Processing event: ", event)
 
+    const authorization = event.headers.Authorization
+    const split = authorization.split(' ')
+    const jwtToken = split[1]
     const groupId = event.pathParameters.groupId
     const validGroupId = await groupExists(groupId)
 
@@ -30,6 +34,7 @@ const createImage: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     const newItem = {
         timestamp: new Date().toISOString(),
         imageId: itemId,
+        userId: getUserId(jwtToken),
         groupId: groupId,
         ...event.body,
         imageUrl: `http://${bucketName}.s3.amazonaws.com/${itemId}`

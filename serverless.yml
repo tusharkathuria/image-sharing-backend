@@ -87,6 +87,9 @@ custom:
 
 functions:
 
+  R256Auth:
+    handler: src/functions/r256auth0Authorizer/handler.main
+
   Auth:
     handler: src/functions/auth0Authorizer/handler.main
 
@@ -105,7 +108,7 @@ functions:
           method: post
           path: groups
           cors: true
-          authorizer: Auth
+          authorizer: R256Auth
           reqValidatorName: RequestBodyValidator
           documentation:
             summary: Create a new group
@@ -128,7 +131,7 @@ functions:
           method: post
           path: groups/{groupId}/images
           cors: true
-          authorizer: Auth
+          authorizer: R256Auth
           reqValidatorName: RequestBodyValidator
           documentation:
             summary: Create a new image
