@@ -18,6 +18,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'ap-south-1'}
 
+  tracing:
+    lambda: true
+    apiGateway: true
+
   environment:
     GROUPS_TABLE: Groups-${self:provider.stage}
     IMAGES_TABLE: Images-${self:provider.stage}
@@ -123,7 +127,7 @@ functions:
           #   requestModels:
           #     'application/json': GroupRequest
     deploymentSettings:
-      type: Linear10PercentEvery1Minutes
+      type: Linear10PercentEvery1Minute
       alias: Live
 
   GetImages:

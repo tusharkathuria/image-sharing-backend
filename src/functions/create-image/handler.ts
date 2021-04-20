@@ -1,9 +1,12 @@
 import * as AWS from 'aws-sdk'
+import * as AWSXRay from 'aws-xray-sdk'
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/apiGateway';
 import { uuid } from 'uuidv4';
 import { middyfy } from '@libs/lambda';
-const docClient = new AWS.DynamoDB.DocumentClient()
-const s3 = new AWS.S3({signatureVersion: "v4"})
+
+const XAWS = AWSXRay.captureAWS(AWS)
+const docClient = new XAWS.DynamoDB.DocumentClient()
+const s3 = new XAWS.S3({signatureVersion: "v4"})
 const imagesTable = process.env.IMAGES_TABLE
 const groupsTable = process.env.GROUPS_TABLE
 const bucketName = process.env.IMAGES_S3_BUCKET
