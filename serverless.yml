@@ -7,6 +7,9 @@ plugins:
   - serverless-webpack
   - serverless-reqvalidator-plugin
   - serverless-aws-documentation
+  - serverless-dynamodb-local
+  - serverless-offline
+  - serverless-plugin-canary-deployments
 
 provider:
   name: aws
@@ -25,6 +28,11 @@ provider:
     THUMBNAILS_S3_BUCKET: 629226848507-serverless-image-group-app-thumbnails-${self:provider.stage}
 
   iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - codedeploy:*
+      Resource:
+        - '*'
     - Effect: Allow
       Action:
         - dynamodb:Scan
@@ -67,6 +75,18 @@ custom:
         version: v1.0.0
         title: Udagram API
         description: Serverless application for images sharing
+
+  serverless-offline:
+    httpPort: 3003
+
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    stages:
+      - dev
+
     models:
       - name: GroupRequest
         contentType: application/json
@@ -97,11 +117,14 @@ functions:
           cors: true
           authorizer: R256Auth
           reqValidatorName: RequestBodyValidator
-          documentation:
-            summary: Create a new group
-            description: Create a new group
-            requestModels:
-              'application/json': GroupRequest
+          # documentation:
+          #   summary: Create a new group
+          #   description: Create a new group
+          #   requestModels:
+          #     'application/json': GroupRequest
+    deploymentSettings:
+      type: Linear10PercentEvery1Minutes
+      alias: Live
 
   GetImages:
     handler: src/functions/get-images/handler.main
@@ -120,11 +143,11 @@ functions:
           cors: true
           authorizer: R256Auth
           reqValidatorName: RequestBodyValidator
-          documentation:
-            summary: Create a new image
-            description: Create a new image
-            requestModels:
-              'application/json': ImageRequest
+          # documentation:
+          #   summary: Create a new image
+          #   description: Create a new image
+          #   requestModels:
+          #     'application/json': ImageRequest
 
   SendUploadNotifications:
     environment:
