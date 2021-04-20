@@ -11,6 +11,9 @@ plugins:
   - serverless-offline
   - serverless-plugin-canary-deployments
 
+package:
+  individually: true
+
 provider:
   name: aws
   runtime: nodejs14.x
@@ -126,9 +129,9 @@ functions:
           #   description: Create a new group
           #   requestModels:
           #     'application/json': GroupRequest
-    deploymentSettings:
-      type: Linear10PercentEvery1Minute
-      alias: Live
+    # deploymentSettings:
+    #   type: Linear10PercentEvery1Minute
+    #   alias: Live
 
   GetImages:
     handler: src/functions/get-images/handler.main
